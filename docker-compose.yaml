@@ -1,0 +1,10 @@
+version: "3.8"
+
+services:
+  hr_bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hr_bot
+    container_name: hr_bot
+    restart: unless-stopped
