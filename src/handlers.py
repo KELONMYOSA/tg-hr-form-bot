@@ -135,7 +135,7 @@ async def internship_answer(message: Message, state: FSMContext):
             "указав примерные даты практики/стажировки и три вещи, которым хочешь научиться у нас."
         )
         await message.answer(
-            text="А теперь финальный этап!\n" "Напиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ",
+            text="А теперь финальный этап!\nНапиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ",
             reply_markup=ReplyKeyboardRemove(),
         )
         await state.set_state(HRForm.get_phone)
@@ -154,17 +154,17 @@ async def full_time_answer(message: Message, state: FSMContext):
         await state.update_data(full_time="Да")
         await message.answer(
             text="Смело отправляй свое резюме и сопроводительное письмо на почту hh@comfortel.pro, "
-            "указав почему ты хочешь работать именно у нас."
+            "указав 3 причины, по которым ты хочешь работать именно у нас."
         )
         await message.answer(
-            text="А теперь финальный этап!\n" "Напиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ",
+            text="А теперь финальный этап!\nНапиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ",
             reply_markup=ReplyKeyboardRemove(),
         )
         await state.set_state(HRForm.get_phone)
     elif message.text == "Нет":
         await state.update_data(full_time="Нет")
         await message.answer(
-            text="А теперь финальный этап!\n" "Напиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ",
+            text="А теперь финальный этап!\nНапиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ",
             reply_markup=ReplyKeyboardRemove(),
         )
         await state.set_state(HRForm.get_phone)
@@ -181,10 +181,10 @@ async def phone_question(message: Message, state: FSMContext):
     await state.update_data(phone=message.text)
     await state.update_data(tg=f"https://t.me/{message.from_user.username}")
     await message.answer(
-        text="Мы очень рады, что ты хочешь расти и развиваться вместе с нами!\n"
-        "Мы свяжемся с тобой в ближайшее время. А пока предлагаем заглянуть на наш сайт https://comfortel.pro "
-        "и ознакомиться с актуальными вакансиями https://hh.ru/employer/965294?hhtmFrom=vacancy"
-        "\nДо встречи!",
+        text="Мы очень рады, что ты хочешь расти и развиваться вместе с нами! Ждем твоего сообщения.\n"
+        "А пока предлагаем заглянуть на наш сайт https://comfortel.pro  и познакомиться с актуальными вакансиями "
+        "https://hh.ru/employer/965294?hhtmFrom=vacancy\n"
+        "До встречи!",
         reply_markup=ReplyKeyboardRemove(),
     )
     user_data = await state.get_data()
@@ -194,6 +194,10 @@ async def phone_question(message: Message, state: FSMContext):
 
 # Отвечаем на некорректные ответы
 @router.message()
-async def echo_all(message: Message):
-    await message.answer(text="Что-то пошло не так...\n" "Воспользуйся клавиатурой бота")
+async def echo_all(message: Message, state: FSMContext):
     await message.delete()
+    await message.answer(
+        text="Что-то пошло не так...",
+        reply_markup=make_row_keyboard(["Начать сначала"]),
+    )
+    await state.set_state(HRForm.restart)
