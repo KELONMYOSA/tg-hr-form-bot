@@ -8,8 +8,7 @@ class Settings(BaseSettings):
 
     EMAIL_SMTP_HOST: str
     EMAIL_SMTP_PORT: int
-    EMAIL_LOGIN: str
-    EMAIL_PASSWORD: str
+    EMAIL_SENDER: str
     EMAIL_RECIPIENT: str
 
 

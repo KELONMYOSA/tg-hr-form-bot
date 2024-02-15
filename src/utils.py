@@ -20,8 +20,7 @@ sphere_dict = {
 def send_results_email(user_data: dict):
     server = smtplib.SMTP(settings.EMAIL_SMTP_HOST, settings.EMAIL_SMTP_PORT)
     server.starttls()
-    server.login(settings.EMAIL_LOGIN, settings.EMAIL_PASSWORD)
-    server.sendmail(settings.EMAIL_LOGIN, settings.EMAIL_RECIPIENT, _user_data_to_mail(user_data))
+    server.sendmail(settings.EMAIL_SENDER, settings.EMAIL_RECIPIENT, _user_data_to_mail(user_data))
     server.quit()
 
 
@@ -38,7 +37,7 @@ def _user_data_to_mail(user_data: dict) -> str:
     ]
     msg = MIMEMultipart()
     text = "<pre>" + "\n".join(data_list) + "<pre>"
-    msg["From"] = settings.EMAIL_LOGIN
+    msg["From"] = settings.EMAIL_SENDER
     msg["To"] = settings.EMAIL_RECIPIENT
     msg["Subject"] = "Отклик из Телеграм-бота"
     msg.attach(MIMEText(text, "html"))
