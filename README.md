@@ -16,8 +16,7 @@ git clone https://github.com/KELONMYOSA/tg-hr-form-bot.git
 BOT_TOKEN=TgB0tT0k3N
 EMAIL_SMTP_HOST=mail.domain.com
 EMAIL_SMTP_PORT=587
-EMAIL_LOGIN=info@domain.com
-EMAIL_PASSWORD=simplePass
+EMAIL_SENDER=info@domain.com
 EMAIL_RECIPIENT=target@domain.com
 ```
 
