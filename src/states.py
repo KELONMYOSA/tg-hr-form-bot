@@ -12,3 +12,4 @@ class HRForm(StatesGroup):
     internship_question = State()
     get_phone = State()
     full_time_question = State()
+    finished = State()

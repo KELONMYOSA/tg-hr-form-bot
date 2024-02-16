@@ -131,8 +131,8 @@ async def internship_answer(message: Message, state: FSMContext):
         await state.update_data(full_time="Нет")
         await message.answer(
             text="Да это мэтч!\n"
-            "Не стесняйся, пиши рекрутеру компании Анне Кучер в tg - @kucher_hr, "
-            "указав примерные даты практики/стажировки и три вещи, которым хочешь научиться у нас."
+            "Не стесняйся, пиши рекрутеру компании Анне Кучер в tg - @kucher_hr. "
+            "В сообщении укажи примерные даты практики/стажировки и 3 навыка, которые хочешь на ней получить."
         )
         await message.answer(
             text="А теперь финальный этап!\nНапиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ",
@@ -189,7 +189,18 @@ async def phone_question(message: Message, state: FSMContext):
     )
     user_data = await state.get_data()
     send_results_email(user_data)
-    await state.clear()
+    await state.set_state(HRForm.finished)
+
+
+# Сообщение, если пользователь уже отправил анкету
+@router.message(HRForm.finished)
+async def finished_msg(message: Message, state: FSMContext):
+    await message.delete()
+    await message.answer(
+        text="У тебя остались еще вопросы?\n"
+        "Ты можешь связаться с рекрутером Комфортел - Анной Кучер в tg @kucher_hr",
+        reply_markup=ReplyKeyboardRemove(),
+    )
 
 
 # Отвечаем на некорректные ответы
