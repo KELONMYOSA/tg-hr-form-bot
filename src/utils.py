@@ -26,6 +26,11 @@ def send_results_email(user_data: dict):
 
 
 def _user_data_to_mail(user_data: dict) -> str:
+    if "https://t.me/" in user_data["tg"]:
+        tg_msg_row = f"Telegram: <a href='{user_data['tg']}'>@{user_data['tg'].replace('https://t.me/', '')}</a>"
+    else:
+        tg_msg_row = f"Telegram: <a href='{user_data['tg']}'>{user_data['tg']}</a>"
+
     data_list = [
         f"Фамилия Имя: {user_data['name']}",
         f"Направление: {user_data['direction']}",
@@ -34,7 +39,7 @@ def _user_data_to_mail(user_data: dict) -> str:
         f"Стажировка/практика: {user_data['intern']}",
         f"Полный день: {user_data['full_time']}",
         f"Телефон: {user_data['phone']}",
-        f"Telegram: <a href='{user_data['tg']}'>@{user_data['tg'].replace('https://t.me/', '')}</a>",
+        tg_msg_row,
     ]
     msg = MIMEMultipart()
     text = "<pre>" + "\n".join(data_list) + "<pre>"

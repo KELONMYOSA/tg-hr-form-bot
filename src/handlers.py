@@ -5,7 +5,7 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove
 
-from src.keyboard import make_row_keyboard
+from src.keyboard import make_row_keyboard, request_contact_keyboard
 from src.states import HRForm
 from src.utils import send_results_email, sphere_dict
 
@@ -188,8 +188,9 @@ async def resume_answer(message: Message, state: FSMContext):
         await state.set_state(HRForm.get_resume)
     else:
         await message.answer(
-            text="А теперь финальный этап!\nНапиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ",
-            reply_markup=ReplyKeyboardRemove(),
+            text="А теперь финальный этап!\nНапиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ "
+            'или нажми кнопку "Поделиться контактом"',
+            reply_markup=request_contact_keyboard(),
         )
         await state.set_state(HRForm.get_phone)
 
@@ -199,8 +200,9 @@ async def resume_answer(message: Message, state: FSMContext):
 async def resume_processing(message: Message, state: FSMContext, bot: Bot):
     if message.text == "Пропустить":
         await message.answer(
-            text="А теперь финальный этап!\nНапиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ",
-            reply_markup=ReplyKeyboardRemove(),
+            text="А теперь финальный этап!\nНапиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ "
+            'или нажми кнопку "Поделиться контактом"',
+            reply_markup=request_contact_keyboard(),
         )
         await state.set_state(HRForm.get_phone)
         return
@@ -221,8 +223,9 @@ async def resume_processing(message: Message, state: FSMContext, bot: Bot):
     await state.update_data(resume_bytes=file_bytes)
 
     await message.answer(
-        text="А теперь финальный этап!\nНапиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ",
-        reply_markup=ReplyKeyboardRemove(),
+        text="А теперь финальный этап!\nНапиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ "
+        'или нажми кнопку "Поделиться контактом"',
+        reply_markup=request_contact_keyboard(),
     )
     await state.set_state(HRForm.get_phone)
 
@@ -230,8 +233,16 @@ async def resume_processing(message: Message, state: FSMContext, bot: Bot):
 # Получаем номер телефона
 @router.message(HRForm.get_phone)
 async def phone_question(message: Message, state: FSMContext):
-    await state.update_data(phone=message.text)
-    await state.update_data(tg=f"https://t.me/{message.from_user.username}")
+    if message.contact:
+        await state.update_data(phone=message.contact.phone_number)
+    else:
+        await state.update_data(phone=message.text)
+
+    if message.from_user.username:
+        await state.update_data(tg=f"https://t.me/{message.from_user.username}")
+    else:
+        await state.update_data(tg=message.from_user.url)
+
     await message.answer(
         text="Мы очень рады, что ты хочешь расти и развиваться вместе с нами! Ждем твоего сообщения.\n"
         "А пока предлагаем заглянуть на наш сайт https://comfortel.pro  и познакомиться с актуальными вакансиями "
