@@ -1,4 +1,5 @@
 import smtplib
+from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -41,5 +42,10 @@ def _user_data_to_mail(user_data: dict) -> str:
     msg["To"] = settings.EMAIL_RECIPIENT
     msg["Subject"] = "Отклик из Телеграм-бота"
     msg.attach(MIMEText(text, "html"))
+
+    if user_data.get("resume_name"):
+        resume = MIMEApplication(user_data["resume_bytes"], Name=user_data["resume_name"])
+        resume["Content-Disposition"] = f'attachment; filename="{user_data["resume_name"]}"'
+        msg.attach(resume)
 
     return msg.as_string()

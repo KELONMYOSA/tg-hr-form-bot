@@ -1,4 +1,6 @@
-from aiogram import F, Router
+from io import BytesIO
+
+from aiogram import Bot, F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, ReplyKeyboardRemove
@@ -135,10 +137,10 @@ async def internship_answer(message: Message, state: FSMContext):
             "В сообщении укажи примерные даты практики/стажировки и 3 навыка, которые хочешь на ней получить."
         )
         await message.answer(
-            text="А теперь финальный этап!\nНапиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ",
-            reply_markup=ReplyKeyboardRemove(),
+            text="Или ты можешь сейчас отправить свое резюме через бота. Отправить?",
+            reply_markup=make_row_keyboard(["Да, отправить", "Пропустить"]),
         )
-        await state.set_state(HRForm.get_phone)
+        await state.set_state(HRForm.resume_question)
     else:
         await state.update_data(intern="Нет")
         await message.answer(
@@ -157,22 +159,72 @@ async def full_time_answer(message: Message, state: FSMContext):
             "указав 3 причины, по которым ты хочешь работать именно у нас."
         )
         await message.answer(
-            text="А теперь финальный этап!\nНапиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ",
-            reply_markup=ReplyKeyboardRemove(),
+            text="Или ты можешь сейчас отправить свое резюме через бота. Отправить?",
+            reply_markup=make_row_keyboard(["Да, отправить", "Пропустить"]),
         )
-        await state.set_state(HRForm.get_phone)
+        await state.set_state(HRForm.resume_question)
     elif message.text == "Нет":
         await state.update_data(full_time="Нет")
         await message.answer(
-            text="А теперь финальный этап!\nНапиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ",
-            reply_markup=ReplyKeyboardRemove(),
+            text="Ты можешь сейчас отправить свое резюме через бота. Отправить?",
+            reply_markup=make_row_keyboard(["Да, отправить", "Пропустить"]),
         )
-        await state.set_state(HRForm.get_phone)
+        await state.set_state(HRForm.resume_question)
     else:
         await message.answer(
             text="Ты заинтересован в стажировке/практике?", reply_markup=make_row_keyboard(["Да", "Нет"])
         )
         await state.set_state(HRForm.internship_question)
+
+
+# Получение ответа на вопрос о резюме
+@router.message(HRForm.resume_question, F.text.in_(["Да, отправить", "Пропустить"]))
+async def resume_answer(message: Message, state: FSMContext):
+    if message.text == "Да, отправить":
+        await message.answer(
+            text="Отправь следующим сообщением файл с резюме (pdf, docx, doc):",
+            reply_markup=make_row_keyboard(["Пропустить"]),
+        )
+        await state.set_state(HRForm.get_resume)
+    else:
+        await message.answer(
+            text="А теперь финальный этап!\nНапиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        await state.set_state(HRForm.get_phone)
+
+
+# Получение файла резюме
+@router.message(HRForm.get_resume)
+async def resume_processing(message: Message, state: FSMContext, bot: Bot):
+    if message.text == "Пропустить":
+        await message.answer(
+            text="А теперь финальный этап!\nНапиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        await state.set_state(HRForm.get_phone)
+        return
+
+    if not message.document or message.document.file_name.split(".")[-1].lower() not in ["pdf", "docx", "doc"]:
+        await message.answer(
+            text="Что-то тут не так...\n"
+            'Отправь следующим сообщением файл с резюме (pdf, docx, doc) или нажми "Пропустить":'
+        )
+        return
+
+    file_buf = BytesIO()
+    await bot.download(message.document, file_buf)
+    file_buf.seek(0)
+    file_bytes = file_buf.read()
+
+    await state.update_data(resume_name=message.document.file_name)
+    await state.update_data(resume_bytes=file_bytes)
+
+    await message.answer(
+        text="А теперь финальный этап!\nНапиши свой контактный телефон в формате +7 ХХХ ХХХ-ХХ-ХХ",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    await state.set_state(HRForm.get_phone)
 
 
 # Получаем номер телефона
@@ -189,6 +241,7 @@ async def phone_question(message: Message, state: FSMContext):
     )
     user_data = await state.get_data()
     send_results_email(user_data)
+    await state.clear()
     await state.set_state(HRForm.finished)
 
 
