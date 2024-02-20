@@ -83,11 +83,11 @@ async def sphere_question(message: Message, state: FSMContext):
     await message.answer(
         text="Мы всегда рады предложить интересные карьерные возможности.\n"
         "Пожалуйста, выбери сферу, в которой бы тебе хотелось развиваться (указать цифру):\n"
-        "1. Разработка\n"
+        "1. B2B Продажи\n"
         "2. Техническая поддержка\n"
-        "3. Инфраструктура, сети\n"
-        "4. Управление проектами (телеком, IT)\n"
-        "5. B2B Продажи\n"
+        "3. Разработка\n"
+        "4. Инфраструктура, сети\n"
+        "5. Управление проектами (телеком, IT)\n"
         "6. Финансы, бухгалтерия\n"
         "7. HR, психология\n"
         "8. PR, маркетинг, event, графический дизайн\n"
@@ -194,7 +194,7 @@ async def phone_question(message: Message, state: FSMContext):
 
 # Сообщение, если пользователь уже отправил анкету
 @router.message(HRForm.finished)
-async def finished_msg(message: Message, state: FSMContext):
+async def finished_msg(message: Message):
     await message.delete()
     await message.answer(
         text="У тебя остались еще вопросы?\n"
