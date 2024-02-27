@@ -33,13 +33,14 @@ def _user_data_to_mail(user_data: dict) -> str:
 
     data_list = [
         f"Фамилия Имя: {user_data['name']}",
-        f"Направление: {user_data['direction']}",
-        f"Курс: {user_data['year']}",
+        f"Учебное заведение: {user_data['direction']}",
+        f"Направление и курс: {user_data['year']}",
         f"Сфера: {user_data['sphere']}",
         f"Стажировка/практика: {user_data['intern']}",
         f"Полный день: {user_data['full_time']}",
         f"Телефон: {user_data['phone']}",
         tg_msg_row,
+        f"Сопроводительное письмо:\n```\n{user_data['letter']}\n```",
     ]
     msg = MIMEMultipart()
     text = "<pre>" + "\n".join(data_list) + "<pre>"

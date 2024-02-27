@@ -10,6 +10,7 @@ class HRForm(StatesGroup):
     get_sphere = State()
     get_sphere_details = State()
     internship_question = State()
+    сover_letter = State()
     resume_question = State()
     get_resume = State()
     get_phone = State()

@@ -66,7 +66,7 @@ async def restart(message: Message, state: FSMContext):
 @router.message(HRForm.get_name)
 async def direction_question(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
-    await message.answer(text="На каком направлении ты учишься?", reply_markup=ReplyKeyboardRemove())
+    await message.answer(text="В каком учебном заведении ты учишься?", reply_markup=ReplyKeyboardRemove())
     await state.set_state(HRForm.get_direction)
 
 
@@ -74,7 +74,7 @@ async def direction_question(message: Message, state: FSMContext):
 @router.message(HRForm.get_direction)
 async def year_question(message: Message, state: FSMContext):
     await state.update_data(direction=message.text)
-    await message.answer(text="А курс?", reply_markup=ReplyKeyboardRemove())
+    await message.answer(text="Укажи направление и курс:", reply_markup=ReplyKeyboardRemove())
     await state.set_state(HRForm.get_year)
 
 
@@ -113,7 +113,9 @@ async def other_sphere_question(message: Message, state: FSMContext):
 @router.message(HRForm.get_sphere, F.text.in_([str(x) for x in range(1, 9)]))
 async def internship_question_1(message: Message, state: FSMContext):
     await state.update_data(sphere=sphere_dict[message.text])
-    await message.answer(text="Ты заинтересован в стажировке/практике?", reply_markup=make_row_keyboard(["Да", "Нет"]))
+    await message.answer(
+        text="Ты заинтересован в ..?", reply_markup=make_row_keyboard(["Стажировка", "Практика", "Следующий вопрос"])
+    )
     await state.set_state(HRForm.internship_question)
 
 
@@ -121,32 +123,30 @@ async def internship_question_1(message: Message, state: FSMContext):
 @router.message(HRForm.get_sphere_details)
 async def internship_question_2(message: Message, state: FSMContext):
     await state.update_data(sphere=f"Другое. {message.text}")
-    await message.answer(text="Ты заинтересован в стажировке/практике?", reply_markup=make_row_keyboard(["Да", "Нет"]))
+    await message.answer(
+        text="Ты заинтересован в ..?", reply_markup=make_row_keyboard(["Стажировка", "Практика", "Следующий вопрос"])
+    )
     await state.set_state(HRForm.internship_question)
 
 
 # Получение ответа на вопрос о стажировке
-@router.message(HRForm.internship_question, F.text.in_(["Да", "Нет"]))
+@router.message(HRForm.internship_question, F.text.in_(["Стажировка", "Практика", "Следующий вопрос"]))
 async def internship_answer(message: Message, state: FSMContext):
-    if message.text == "Да":
-        await state.update_data(intern="Да")
-        await state.update_data(full_time="Нет")
-        await message.answer(
-            text="Да это мэтч!\n"
-            "Не стесняйся, пиши рекрутеру компании Анне Кучер в tg - @kucher_hr. "
-            "В сообщении укажи примерные даты практики/стажировки и 3 навыка, которые хочешь на ней получить."
-        )
-        await message.answer(
-            text="Или ты можешь сейчас отправить свое резюме через бота. Отправить?",
-            reply_markup=make_row_keyboard(["Да, отправить", "Пропустить"]),
-        )
-        await state.set_state(HRForm.resume_question)
-    else:
+    if message.text == "Следующий вопрос":
         await state.update_data(intern="Нет")
         await message.answer(
             text="Ты заинтересован в работе на полный день?", reply_markup=make_row_keyboard(["Да", "Нет", "Назад"])
         )
         await state.set_state(HRForm.full_time_question)
+    else:
+        await state.update_data(intern=message.text)
+        await state.update_data(full_time="Нет")
+        await message.answer(
+            text="Да это мэтч!\n"
+            "В сообщении укажи примерные даты практики/стажировки и 3 навыка, которые хочешь на ней получить.",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        await state.set_state(HRForm.сover_letter)
 
 
 # Получение ответа на вопрос о полном рабочем дне
@@ -155,32 +155,42 @@ async def full_time_answer(message: Message, state: FSMContext):
     if message.text == "Да":
         await state.update_data(full_time="Да")
         await message.answer(
-            text="Смело отправляй свое резюме и сопроводительное письмо на почту hh@comfortel.pro, "
-            "указав 3 причины, по которым ты хочешь работать именно у нас."
+            text="Смело отправляй свое резюме (при наличии) и сопроводительное письмо, "
+            "указав 3 причины, по которым ты хочешь работать именно у нас.",
+            reply_markup=ReplyKeyboardRemove(),
         )
-        await message.answer(
-            text="Или ты можешь сейчас отправить свое резюме через бота. Отправить?",
-            reply_markup=make_row_keyboard(["Да, отправить", "Пропустить"]),
-        )
-        await state.set_state(HRForm.resume_question)
+        await state.set_state(HRForm.сover_letter)
     elif message.text == "Нет":
         await state.update_data(full_time="Нет")
         await message.answer(
-            text="Ты можешь сейчас отправить свое резюме через бота. Отправить?",
-            reply_markup=make_row_keyboard(["Да, отправить", "Пропустить"]),
+            text="Опиши свои пожелания к будущему месту работы (условия, график, команда, задачи и др.) "
+            "и три вещи, которым бы ты хотел научиться у нас.",
+            reply_markup=ReplyKeyboardRemove(),
         )
-        await state.set_state(HRForm.resume_question)
+        await state.set_state(HRForm.сover_letter)
     else:
         await message.answer(
-            text="Ты заинтересован в стажировке/практике?", reply_markup=make_row_keyboard(["Да", "Нет"])
+            text="Ты заинтересован в ..?",
+            reply_markup=make_row_keyboard(["Стажировка", "Практика", "Следующий вопрос"]),
         )
         await state.set_state(HRForm.internship_question)
 
 
+# Получаем сопроводительное письмо
+@router.message(HRForm.сover_letter)
+async def cover_letter(message: Message, state: FSMContext):
+    await state.update_data(letter=message.text)
+    await message.answer(
+        text="Прикрепить резюме к сопроводительному письму?",
+        reply_markup=make_row_keyboard(["Прикрепить резюме", "Пропустить"]),
+    )
+    await state.set_state(HRForm.resume_question)
+
+
 # Получение ответа на вопрос о резюме
-@router.message(HRForm.resume_question, F.text.in_(["Да, отправить", "Пропустить"]))
+@router.message(HRForm.resume_question, F.text.in_(["Прикрепить резюме", "Пропустить"]))
 async def resume_answer(message: Message, state: FSMContext):
-    if message.text == "Да, отправить":
+    if message.text == "Прикрепить резюме":
         await message.answer(
             text="Отправь следующим сообщением файл с резюме (pdf, docx, doc):",
             reply_markup=make_row_keyboard(["Пропустить"]),
